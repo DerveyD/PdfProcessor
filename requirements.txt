@@ -1,2 +1,3 @@
 pyinstaller
-PyPDF2
+PyMuPDF
+windnd
