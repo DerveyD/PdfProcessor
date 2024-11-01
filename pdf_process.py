@@ -1135,8 +1135,12 @@ class MergeHandler:
             tot = len(files)
             for i, file in enumerate(files):
                 callback(i, tot, file)
-                with pdf_open(file) as f:
-                    writer.insert_pdf(f)
+                try:
+                    with pdf_open(file) as f:
+                        writer.insert_pdf(f)
+                except Exception:
+                    callback(i, tot, f"文件 {file} 读取失败! 请检查文件是否存在!")
+                    return
             callback(tot - 1, tot, "正在写入新文件...")
             writer.save(save_file)
         callback(tot, tot, None)
@@ -1287,11 +1291,11 @@ class MergeApp(FileApp):
         self.files_variable.set(self.files)
 
     def sort_by_name_asc(self):
-        self.files.sort()
+        self.files.sort(key=lambda x: x.rsplit("/", 1)[1])
         self.files_variable.set(self.files)
 
     def sort_by_name_desc(self):
-        self.files.sort(reverse=True)
+        self.files.sort(key=lambda x: x.rsplit("/", 1)[1], reverse=True)
         self.files_variable.set(self.files)
 
 
