@@ -836,7 +836,7 @@ class Application(Frame):
 
     def set_window(self):
         self.master.title("PDF处理工具v0.2")
-        self.master.geometry("600x400")
+        self.master.geometry("600x400+500+200")
 
     def set_vars(self):
         self.about_text = (
