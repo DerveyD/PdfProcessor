@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# 版权所有 © 2024 DerveyD
+# 版权所有 © 2024 Dervey D
 # 本作品遵循 AGPL-3.0 license 发布
 LICENSE = """                    GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
@@ -1509,8 +1509,9 @@ class Application(Frame):
         self.about_text = (
             "                          PDF处理工具v0.2\n"
             + "                          作者: Dervey D\n"
+            + "                      版权所有 © 2024 Dervey D\n"
             + "                     开源协议: AGPL-3.0 license\n"
-            + "           Github: https://github.com/DerveyD/PdfProcessor"
+            + "          源码地址: https://github.com/DerveyD/PdfProcessor"
         )
 
     def create_widgets(self):
