@@ -47,8 +47,8 @@ class FileApp(ABC, Frame):
     def start_handle(self):
         pass
 
-    def create_single_input_button(self, master, button_text, position="left"):
-        hook_dropfiles(master, func=self.drag_single_file)
+    def create_single_input_button(self, master, window, button_text, position="left"):
+        hook_dropfiles(window, func=self.drag_single_file)
         upload_button = Button(
             master,
             text=button_text,
@@ -232,7 +232,7 @@ class DetailApp(FileApp):
         # 功能栏
         banner = Frame(pdf_frame)
         banner.pack(fill="both", side="top", padx=(24, 0), pady=(18, 0))
-        self.create_single_input_button(banner, "选择文件")
+        self.create_single_input_button(banner, self, "选择文件")
         self.create_handle_button(banner, "保存", padx=(18, 0))
         # pdf操作
         self.switch_side_panel = Button(
