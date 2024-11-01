@@ -817,25 +817,35 @@ class FileApp(ABC, Frame):
         return files
 
     def drag_files(self, files):
-        files = [
-            f.decode("utf-8").replace("\\", "/")
-            for f in files
-            if isfile(f.decode("utf-8")) and f.decode("utf-8").endswith(".pdf")
-        ]
-        return self.drag_file_post_process(files)
+        # windnd 错误不被tk管理，需要手动处理
+        try:
+            files = [
+                # windows 使用 gbk 编码
+                f.decode("gbk").replace("\\", "/")
+                for f in files
+                if isfile(f.decode("gbk")) and f.decode("gbk").endswith(".pdf")
+            ]
+            return self.drag_file_post_process(files)
+        except Exception as e:
+            Application.log_exception(e.__context__, e, e.__traceback__)
 
     def drag_single_file_post_process(self, file):
         return file
 
     def drag_single_file(self, files):
-        files = [
-            f.decode("utf-8").replace("\\", "/")
-            for f in files
-            if isfile(f.decode("utf-8")) and f.decode("utf-8").endswith(".pdf")
-        ]
-        self.input_single_pdf_path.set(files[0])
-        self.update()
-        return self.drag_single_file_post_process(files[0])
+        # windnd 错误不被tk管理，需要手动处理
+        try:
+            files = [
+                # windows 使用 gbk 编码
+                f.decode("gbk").replace("\\", "/")
+                for f in files
+                if isfile(f.decode("gbk")) and f.decode("gbk").endswith(".pdf")
+            ]
+            self.input_single_pdf_path.set(files[0])
+            self.update()
+            return self.drag_single_file_post_process(files[0])
+        except Exception as e:
+            Application.log_exception(e.__context__, e, e.__traceback__)
 
     def upload_single_file_post_process(self, file):
         return file
@@ -1529,6 +1539,7 @@ class Application(Frame):
         notebook.add(license_frame, text="开源协议")
         notebook.pack(expand=True, fill="both")
 
+    @classmethod
     def log_exception(self, *args):
         exc_message = "".join(format_exception(*args))
         log_message = f"[{strftime('%Y-%m-%d %H:%M:%S', localtime())}] " + exc_message
