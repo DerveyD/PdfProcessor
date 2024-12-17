@@ -1548,12 +1548,12 @@ class Application(Frame):
         self.pack(expand=True, fill="both")
 
     def set_window(self):
-        self.master.title("PDF处理工具v0.2")
+        self.master.title("PDF处理工具v0.3")
         self.master.geometry("600x400+500+200")
 
     def set_vars(self):
         self.about_text = (
-            "                          PDF处理工具v0.2\n"
+            "                          PDF处理工具v0.3\n"
             + "                          作者: Dervey D\n"
             + "                      版权所有 © 2024 Dervey D\n"
             + "                     开源协议: AGPL-3.0 license\n"
