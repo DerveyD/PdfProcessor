@@ -1,4 +1,4 @@
-# PdfProcessor v0.2
+# PdfProcessor v0.3
 a simple tool for pdf processing, based on PyMuPDF & tk
 
 更新日志v0.3:
