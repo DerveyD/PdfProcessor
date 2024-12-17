@@ -1,6 +1,11 @@
 # PdfProcessor v0.2
 a simple tool for pdf processing, based on PyMuPDF & tk
 
+更新日志v0.3:
+新增功能:
+1. 拆分pdf时现在支持输出到源文件目录
+
+
 更新日志v0.2:
 新增功能:
 1. 新增了gui界面

@@ -674,6 +674,7 @@ from tkinter import (
     Frame,
     Label,
     Button,
+    Checkbutton,
     Entry,
     StringVar,
     IntVar,
@@ -688,7 +689,7 @@ from tkinter.filedialog import (
     askopenfilenames,
     asksaveasfilename,
 )
-from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror, showinfo
 from windnd import hook_dropfiles
 from pymupdf import open as pdf_open, Pixmap
 
@@ -703,6 +704,8 @@ class FileApp(ABC, Frame):
         self.master = master
         self.input_single_pdf_path = StringVar()
         self.input_single_pdf_path.set("请点击按钮选择文件或将文件拖动至窗口内")
+        self.use_source_dir = IntVar()
+        self.use_source_dir.set(0)
         self.output_path = StringVar()
         self.output_path.set(join(getcwd(), "output"))
         self.progress_info = StringVar()
@@ -742,12 +745,22 @@ class FileApp(ABC, Frame):
         upload_label.pack(side="left", fill="x")
 
     def create_select_ouput_frame(self, master):
+        # 是否输出到源文件夹
+        check_frame = Frame(master)
+        check_frame.pack(fill="x", padx=20, pady=(18, 12))
+        checkbox = Checkbutton(
+            check_frame,
+            text="输出至源文件目录",
+            variable=self.use_source_dir,
+            command=self.toggle_output,
+        )
+        checkbox.pack(side="left")
         # 选择输出文件夹
         output_frame = Frame(master)
-        output_frame.pack(fill="x", padx=24, pady=(18, 12))
-        output_entry = Entry(output_frame, textvariable=self.output_path)
-        output_entry.pack(side="left", fill="both", expand=True)
-        output_button = Button(
+        output_frame.pack(fill="x", padx=24, pady=(0, 12))
+        self.output_entry = Entry(output_frame, textvariable=self.output_path)
+        self.output_entry.pack(side="left", fill="both", expand=True)
+        self.output_button = Button(
             output_frame,
             text="输出文件夹",
             command=self.select_output,
@@ -755,7 +768,7 @@ class FileApp(ABC, Frame):
             height=1,
             relief="groove",
         )
-        output_button.pack(side="left", padx=(18, 0))
+        self.output_button.pack(side="left", padx=(18, 0))
 
     def create_progress_frame(self, master, button_text):
         # 进度条
@@ -797,6 +810,14 @@ class FileApp(ABC, Frame):
             relief="groove",
         )
         start_button.pack(side=position, padx=padx)
+
+    def toggle_output(self):
+        if self.use_source_dir.get():
+            self.output_entry.config(state="disabled")
+            self.output_button.config(state="disabled")
+        else:
+            self.output_entry.config(state="normal")
+            self.output_button.config(state="normal")
 
     def select_output(self):
         folder_path = askdirectory(initialdir=getcwd())
@@ -1315,7 +1336,9 @@ class SplitHandler:
         with pdf_open(path) as f:
             self.pages = f.page_count
 
-    def split(self, output_path, func, param, callback):
+    def split(self, output_path, use_source_dir, func, param, callback):
+        if use_source_dir:
+            output_path = self.raw_path.rsplit("/", 1)[0]
         makedirs(output_path, exist_ok=True)
         filename = join(output_path, self.output_filename)
         self.split_func[func](filename, param, callback)
@@ -1324,9 +1347,11 @@ class SplitHandler:
         begin = param["begin"].get()
         end = param["end"].get()
         if begin < 1 or end > self.pages or begin > end:
-            raise Exception(
-                "非法输入, 请检查输入的页码范围是否合法!\n注意: 结束页码必须大于等于开始页码"
+            showinfo(
+                "Warning",
+                "非法输入, 请检查输入的页码范围是否合法!\n注意: 结束页码必须大于等于开始页码",
             )
+            return
         raw_name = self.raw_path.rsplit("/", 1)[1].rsplit(".", 1)[0]
         output_filename = filename.format(name=raw_name, begin=begin, end=end)
         callback(0, 1, output_filename)
@@ -1339,9 +1364,11 @@ class SplitHandler:
     def split_with_stride(self, filename, param, callback):
         stride = param.get()
         if stride < 1 or stride > self.pages:
-            raise Exception(
-                "非法输入, 请检查输入的步长是否合法!\n注意: 步长必须大于0且小于总页数"
+            showinfo(
+                "Warning",
+                "非法输入, 请检查输入的页码范围是否合法!\n注意: 结束页码必须大于等于开始页码",
             )
+            return
         raw_name = self.raw_path.rsplit("/", 1)[1].rsplit(".", 1)[0]
         tot = (self.pages + stride - 1) // stride
         cur = 0
@@ -1359,9 +1386,11 @@ class SplitHandler:
     def split_with_idx(self, filename, param, callback):
         param = param.get()
         if not self.split_idx_check(param, self.pages):
-            raise Exception(
-                "非法输入, 请检查输入的页码序列是否合法!\n注意: 页码之间只能用空格分隔"
+            showinfo(
+                "Warning",
+                "非法输入, 请检查输入的页码范围是否合法!\n注意: 结束页码必须大于等于开始页码",
             )
+            return
         # 这里去重 + 排序
         arr = sorted(list(set(map(int, param.split()))), reverse=True)
         l = 1
@@ -1440,6 +1469,7 @@ class SplitApp(FileApp):
     def start_handle(self):
         self.handler.split(
             self.output_path.get(),
+            self.use_source_dir.get(),
             self.func_choice.get(),
             self.func_vars[self.func_choice.get()],
             self.callback,
@@ -1480,10 +1510,12 @@ class SplitApp(FileApp):
             self.func_vars[SPLIT_FUNC_2],
         )
 
-        self.func_info[SPLIT_FUNC_3] = Entry(
-            master,
+        self.func_info[SPLIT_FUNC_3] = Frame(master)
+        entry = Entry(
+            self.func_info[SPLIT_FUNC_3],
             textvariable=self.func_vars[SPLIT_FUNC_3],
         )
+        entry.pack(side="left", fill="x", padx=(40, 0))
 
     def create_combobox(self, master, label_text, var):
         frame = Frame(master)
@@ -1548,7 +1580,7 @@ class Application(Frame):
         exc_message = "".join(format_exception(*args))
         log_message = f"[{strftime('%Y-%m-%d %H:%M:%S', localtime())}] " + exc_message
         print(log_message)
-        with open("error.log", "a") as f:
+        with open("error.log", "a", encoding="utf-8") as f:
             f.write(log_message)
         showerror("Error", exc_message)
 
